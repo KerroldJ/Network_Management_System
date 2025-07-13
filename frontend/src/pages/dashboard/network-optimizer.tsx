@@ -4,15 +4,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Gauge, Wifi, Zap, Info } from "lucide-react";
 
+// Simulated frontend progress log steps
+const simulatedSteps = [
+    "⏳ Starting network optimization process...",
+    "🚀 Running speed test...",
+    "📡 Collecting ping sample 1...",
+    "📡 Collecting ping sample 2...",
+    "📡 Collecting ping sample 3...",
+    "⚙️ Optimizing network, please wait...",
+    "🔧 Applying virtual DNS flush...",
+    "🔌 Simulating router refresh...",
+    "🌐 Reconnecting to optimal network route...",
+    "📊 Analyzing connection performance..."
+];
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 const Optimizer = () => {
     const [loading, setLoading] = useState(false);
     const [efficiency, setEfficiency] = useState<number | null>(null);
     const [stability, setStability] = useState<string | null>(null);
     const [signal, setSignal] = useState<string | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [optimizationLog, setOptimizationLog] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    // Real-time network status from backend
     const [realtimeStatus, setRealtimeStatus] = useState<string>("Loading...");
     const [realtimeColor, setRealtimeColor] = useState<string>("text-gray-500");
 
@@ -29,7 +45,6 @@ const Optimizer = () => {
         }
     };
 
-    // Fetch real-time network status on component load
     useEffect(() => {
         const fetchRealtimeNetworkStatus = async () => {
             try {
@@ -51,18 +66,36 @@ const Optimizer = () => {
         setLoading(true);
         setError(null);
         setSuggestions([]);
+        setOptimizationLog([]);
+        setEfficiency(null);
+        setStability(null);
+        setSignal(null);
 
         try {
+            // Simulate log steps one-by-one with delay
+            for (let step of simulatedSteps) {
+                setOptimizationLog(prev => [...prev, step]);
+                await sleep(1000);
+            }
+
+            // After simulated steps, make backend request
             const res = await axios.post("http://127.0.0.1:8000/api/optimize-network/");
-            const { efficiency, stability, signal, suggestions } = res.data;
+            const {
+                efficiency,
+                stability,
+                signal,
+                suggestions,
+                optimization_log
+            } = res.data;
 
             setEfficiency(efficiency);
             setStability(stability);
             setSignal(signal);
             setSuggestions(suggestions || []);
+            setOptimizationLog(prev => [...prev, ...(optimization_log || ["✅ Optimization complete."])]);
         } catch (err: any) {
-            setError("Failed to optimize the network.");
             console.error(err);
+            setError("Failed to optimize the network.");
         } finally {
             setLoading(false);
         }
@@ -126,18 +159,35 @@ const Optimizer = () => {
                     </Card>
                 </div>
 
-                {/* Suggestions */}
-                {suggestions.length > 0 && (
-                    <div className="mt-6 bg-gray-100 rounded-md p-4">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                {/* Suggestions + Optimization Log (Unified Box) */}
+                {(suggestions.length > 0 || optimizationLog.length > 0) && (
+                    <div className="mt-6 bg-gray-100 rounded-md p-4 border border-gray-300">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                             <Info className="w-4 h-4 text-blue-500" />
-                            Optimization Suggestions
+                            Network Optimization Summary
                         </div>
-                        <ul className="list-disc list-inside text-sm text-gray-600 mt-2">
-                            {suggestions.map((tip, idx) => (
-                                <li key={idx}>{tip}</li>
-                            ))}
-                        </ul>
+
+                        {suggestions.length > 0 && (
+                            <div className="mb-3">
+                                <p className="text-sm font-semibold text-gray-600">Suggestions:</p>
+                                <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                                    {suggestions.map((tip, idx) => (
+                                        <li key={`suggestion-${idx}`}>{tip}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {optimizationLog.length > 0 && (
+                            <div>
+                                <p className="text-sm font-semibold text-gray-600">Optimization Log:</p>
+                                <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                                    {optimizationLog.map((log, idx) => (
+                                        <li key={`log-${idx}`}>{log}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 )}
 

@@ -21,7 +21,7 @@ const NetworkStats = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await axios.get("http://127.0.0.1:8000/api/network-stats/");
+                const res = await axios.get("http://127.0.0.1:8000/api/network-stats/", { timeout: 3000 });
                 const {
                     download_speed,
                     upload_speed,

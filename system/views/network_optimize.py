@@ -6,65 +6,89 @@ import statistics
 
 @csrf_exempt
 def optimize_network(request):
-    if request.method == "POST":
-        try:
-            st = Speedtest()
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+
+    try:
+        log = []
+        log.append("⏳ Starting network optimization process...")
+        time.sleep(1)
+
+        # Run Speedtest
+        log.append("🚀 Running speed test...")
+        st = Speedtest()
+        st.get_best_server()
+
+        ping_samples = []
+        for i in range(3):
+            log.append(f"📡 Collecting ping sample {i + 1}...")
             st.get_best_server()
+            ping_samples.append(st.results.ping)
+            time.sleep(1)
 
-            ping_samples = []
-            for _ in range(3):
-                st.get_best_server()
-                ping_samples.append(st.results.ping)
-                time.sleep(1)
+        avg_ping = round(statistics.mean(ping_samples), 2)
+        jitter = round(statistics.stdev(ping_samples), 2) if len(ping_samples) > 1 else 0
+        download_speed = round(st.download() / 1_000_000, 2)
+        upload_speed = round(st.upload() / 1_000_000, 2)
 
-            avg_ping = round(statistics.mean(ping_samples), 2)
-            jitter = round(statistics.stdev(ping_samples), 2) if len(ping_samples) > 1 else 0
-            download_speed = round(st.download() / 1_000_000, 2)
-            upload_speed = round(st.upload() / 1_000_000, 2)
+        time.sleep(1)
 
-            # Optimization suggestions
-            suggestions = []
+        # Simulate Optimizations
+        log.append("🔧 Applying virtual DNS flush...")
+        time.sleep(1)
 
-            if download_speed < 10:
-                suggestions.append("Consider reducing background downloads or streaming.")
+        log.append("🔌 Simulating router refresh...")
+        time.sleep(1)
 
-            if upload_speed < 2:
-                suggestions.append("Close apps that use a lot of upload bandwidth (e.g., cloud backup).")
+        log.append("🌐 Reconnecting to optimal network route...")
+        time.sleep(1)
 
-            if avg_ping > 100:
-                suggestions.append("Move closer to the router or switch to Ethernet.")
+        # Analyze Results
+        log.append("📊 Analyzing connection performance...")
 
-            if jitter > 20:
-                suggestions.append("Check for interference or too many devices on the network.")
+        if download_speed >= 50 and avg_ping < 50 and jitter < 10:
+            efficiency = 95
+            stability = "Excellent"
+            signal = "Strong"
+        elif download_speed >= 20 and avg_ping < 100:
+            efficiency = 85
+            stability = "Moderate"
+            signal = "Good"
+        else:
+            efficiency = 60
+            stability = "Unstable"
+            signal = "Weak"
 
-            # Derive efficiency, stability, and signal from stats
-            if download_speed >= 50 and avg_ping < 50 and jitter < 10:
-                efficiency = 95
-                stability = "Excellent"
-                signal = "Strong"
-            elif download_speed >= 20 and avg_ping < 100:
-                efficiency = 85
-                stability = "Moderate"
-                signal = "Good"
-            else:
-                efficiency = 60
-                stability = "Unstable"
-                signal = "Weak"
+        # Recommendations
+        suggestions = []
 
-            return JsonResponse({
-                "efficiency": efficiency,
-                "stability": stability,
-                "signal": signal,
-                "network_stats": {
-                    "avg_ping": avg_ping,
-                    "jitter": jitter,
-                    "download_speed": download_speed,
-                    "upload_speed": upload_speed
-                },
-                "suggestions": suggestions or ["Your network is in good condition."]
-            })
+        if download_speed < 10:
+            suggestions.append("Reduce background downloads and streaming.")
+        if upload_speed < 2:
+            suggestions.append("Close apps using heavy upload bandwidth.")
+        if avg_ping > 100:
+            suggestions.append("Move closer to your router or switch to Ethernet.")
+        if jitter > 20:
+            suggestions.append("Minimize interference and reduce active devices.")
 
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+        if not suggestions:
+            suggestions.append("✅ Your network is stable and performing well.")
 
-    return JsonResponse({"error": "Only POST requests are allowed."}, status=405)
+        log.append("✅ Optimization complete.")
+
+        return JsonResponse({
+            "efficiency": efficiency,
+            "stability": stability,
+            "signal": signal,
+            "network_stats": {
+                "avg_ping": avg_ping,
+                "jitter": jitter,
+                "download_speed": download_speed,
+                "upload_speed": upload_speed
+            },
+            "suggestions": suggestions,
+            "optimization_log": log
+        })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
