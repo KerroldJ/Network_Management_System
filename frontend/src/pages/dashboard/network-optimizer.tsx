@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,40 @@ const Optimizer = () => {
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    // Function to determine network status
-    const getNetworkStatus = (eff: number | null): { status: string; color: string } => {
-        if (eff === null) return { status: "Unknown", color: "text-gray-500" };
-        if (eff < 40) return { status: "Poor", color: "text-red-600" };
-        if (eff < 75) return { status: "Moderate", color: "text-yellow-600" };
-        return { status: "Good", color: "text-green-600" };
+    // Real-time network status from backend
+    const [realtimeStatus, setRealtimeStatus] = useState<string>("Loading...");
+    const [realtimeColor, setRealtimeColor] = useState<string>("text-gray-500");
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "Good":
+                return "text-green-600";
+            case "Moderate":
+                return "text-yellow-600";
+            case "Poor":
+                return "text-red-600";
+            default:
+                return "text-gray-500";
+        }
     };
 
-    const networkStatus = getNetworkStatus(efficiency);
+    // Fetch real-time network status on component load
+    useEffect(() => {
+        const fetchRealtimeNetworkStatus = async () => {
+            try {
+                const res = await axios.get("http://127.0.0.1:8000/api/network-stats/");
+                const { status } = res.data;
+                setRealtimeStatus(status);
+                setRealtimeColor(getStatusColor(status));
+            } catch (err) {
+                console.error("Failed to fetch real-time status:", err);
+                setRealtimeStatus("Unknown");
+                setRealtimeColor("text-gray-500");
+            }
+        };
+
+        fetchRealtimeNetworkStatus();
+    }, []);
 
     const handleOptimize = async () => {
         setLoading(true);
@@ -48,14 +73,14 @@ const Optimizer = () => {
             <div className="w-[1280px]">
                 {/* Cards Row */}
                 <div className="flex flex-wrap gap-4">
-                    {/* Network Status Card */}
+                    {/* Real-Time Network Status Card */}
                     <Card className="w-[300px] shadow-md">
                         <CardContent className="flex items-center gap-4 p-4">
-                            <Info className={networkStatus.color} />
+                            <Info className={realtimeColor} />
                             <p className="text-sm font-medium">
                                 Network Status:{" "}
-                                <span className={`font-bold ${networkStatus.color}`}>
-                                    {networkStatus.status}
+                                <span className={`font-bold ${realtimeColor}`}>
+                                    {realtimeStatus}
                                 </span>
                             </p>
                         </CardContent>

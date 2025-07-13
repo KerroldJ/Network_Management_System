@@ -3,20 +3,31 @@ from django.views.decorators.csrf import csrf_exempt
 from speedtest import Speedtest
 from datetime import datetime
 
+def classify_network(ping, download, upload):
+    if ping < 50 and download > 20 and upload > 10:
+        return "Good"
+    elif ping <= 100 and download >= 5 and upload >= 2:
+        return "Moderate"
+    else:
+        return "Poor"
+
 @csrf_exempt
 def get_realtime_network_stats(request):
     try:
-        # Speedtest
         st = Speedtest()
-        st.get_best_server()  # Selects a server and measures latency
-        avg_ping = st.results.ping  # Latency in ms
+        st.get_best_server()
         download_speed = round(st.download() / 1_000_000, 2)  # Mbps
         upload_speed = round(st.upload() / 1_000_000, 2)      # Mbps
+        avg_ping = round(st.results.ping, 2)                  # ms
+
+        # Classify network
+        status = classify_network(avg_ping, download_speed, upload_speed)
 
         return JsonResponse({
             "download_speed": download_speed,
             "upload_speed": upload_speed,
-            "ping": round(avg_ping, 2),
+            "ping": avg_ping,
+            "status": status,
             "timestamp": datetime.now().isoformat()
         })
 

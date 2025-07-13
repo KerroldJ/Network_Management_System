@@ -13,17 +13,17 @@ import { Home, BarChart, Zap, User } from "lucide-react";
 const Sidebar = () => {
     const navigate = useNavigate();
 
-    // ✅ Get logged-in user info from localStorage
+    // Get logged-in user info from localStorage
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const username = user.fullname || "Guest";
 
     const handleLogout = () => {
-        // ✅ Clear tokens and user info
+        // Clear tokens and user info
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("user");
 
-        // ✅ Redirect to login/home
+        // Redirect to login/home
         navigate("/");
     };
 
