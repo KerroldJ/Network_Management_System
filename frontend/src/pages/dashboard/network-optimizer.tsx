@@ -7,11 +7,13 @@ import { Gauge, Wifi, Zap, Info } from "lucide-react";
 // Simulated frontend progress log steps
 const simulatedSteps = [
     "⏳ Starting network optimization process...",
+    "🤖 Connecting to AI optimization models...",
+    "📁 AI models accessed successfully.",
+    "🧠 AI diagnostic: Proceed with optimization.",
     "🚀 Running speed test...",
     "📡 Collecting ping sample 1...",
     "📡 Collecting ping sample 2...",
     "📡 Collecting ping sample 3...",
-    "⚙️ Optimizing network, please wait...",
     "🔧 Applying virtual DNS flush...",
     "🔌 Simulating router refresh...",
     "🌐 Reconnecting to optimal network route...",
@@ -72,13 +74,13 @@ const Optimizer = () => {
         setSignal(null);
 
         try {
-            // Simulate log steps one-by-one with delay
+            // Step-by-step simulated frontend logs
             for (let step of simulatedSteps) {
                 setOptimizationLog(prev => [...prev, step]);
                 await sleep(1000);
             }
 
-            // After simulated steps, make backend request
+            // Backend request only after steps
             const res = await axios.post("http://127.0.0.1:8000/api/optimize-network/");
             const {
                 efficiency,
@@ -92,7 +94,12 @@ const Optimizer = () => {
             setStability(stability);
             setSignal(signal);
             setSuggestions(suggestions || []);
-            setOptimizationLog(prev => [...prev, ...(optimization_log || ["✅ Optimization complete."])]);
+
+            // Append only "✅ Optimization complete."
+            const finalStep = optimization_log?.find((log: string | string[]) => log.includes("✅"));
+            if (finalStep) {
+                setOptimizationLog(prev => [...prev, finalStep]);
+            }
         } catch (err: any) {
             console.error(err);
             setError("Failed to optimize the network.");
