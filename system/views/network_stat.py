@@ -14,8 +14,9 @@ def classify_network(ping, download, upload):
 @csrf_exempt
 def get_realtime_network_stats(request):
     try:
-        st = Speedtest(timeout=5)  # Add timeout to prevent long hangs
+        st = Speedtest(timeout=3)  # Prevent long-running calls
         st.get_best_server()
+
         download_speed = round(st.download() / 1_000_000, 2)  # Mbps
         upload_speed = round(st.upload() / 1_000_000, 2)      # Mbps
         avg_ping = round(st.results.ping, 2)                  # ms
